@@ -1,0 +1,189 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage{comment} % enables the use of multi-line comments (\ifx \fi) 
+\usepackage{fullpage} % changes the margin
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{amsthm}
+\usepackage{algorithm} % must read after hyperref
+\usepackage{algorithmic}
+\usepackage{framed}
+\usepackage[sort,nocompress]{cite}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\usepackage{setspace}
+\usepackage{url}
+\usepackage[toc,page]{appendix}
+\usepackage{listings} % Write Haskell code
+\usepackage{hyperref}
+
+\begin{document}
+\title{Haskell Exercises}
+\author{John Alora}
+\date{}
+\maketitle
+
+\section{Chapter 1 Exercises (Lambda Calculus)}
+
+\begin{enumerate}
+\item $(\lambda abc.cba) zz (\lambda wv.w)$
+%
+\begin{align*}
+(\lambda a.\lambda b.\lambda c.cba)zz(\lambda w.\lambda v.w) \\
+(\lambda b.\lambda c.cbz)z(\lambda w.\lambda v.w) \\
+(\lambda c.czz)(\lambda w.\lambda v.w) \\
+(\lambda w.\lambda v.w)zz \\
+(\lambda v.z)z \\
+z
+\end{align*}
+%
+\item $(\lambda x.\lambda y. xyy)(\lambda a.a)b$
+%
+\begin{align*}
+(\lambda y.(\lambda a.a)yy)b \\
+(\lambda a.a)bb \\
+bb
+\end{align*}
+%
+\item $(\lambda y.y)(\lambda x.xx) (\lambda z.zq)$
+%
+\begin{align*}
+(\lambda x.xx)(\lambda z.zq) \\
+(\lambda z.zq)(\lambda z.zq) \\
+(\lambda z.zq)q \\
+qq
+\end{align*}
+%
+\item $(\lambda z.z)(\lambda z.zz)(\lambda z.zy)$ \qquad hint: alpha equivalence
+%
+\begin{align*}
+(\lambda z.zz)(\lambda z.zy) \\
+(\lambda z.zy)(\lambda z.zy) \\
+(\lambda z.zy)y \\
+yy
+\end{align*}
+%
+\item $(\lambda x.\lambda y.xyy)(\lambda y.y)y$
+%
+\begin{align*}
+(\lambda y.(\lambda y.y)yy)y \\
+(\lambda y.y)yy \\
+yy
+\end{align*}
+%
+\item $(\lambda a.aa)(\lambda b.ba)c$
+%
+\begin{align*}
+(\lambda b.ba)(\lambda b.ba)c \\
+(\lambda b.ba)(a)c \\
+aac
+\end{align*}
+%
+\item $(\lambda xyz.xz(yz))(\lambda x.z)(\lambda x.a)$
+%
+\begin{align*}
+(\lambda x.\lambda y.\lambda z.xz(yz))(\lambda x.z1)(\lambda x.a) \\
+\big[\lambda y.\lambda z.(\lambda x.z1)z(yz) \big](\lambda x.a) \\
+\big[\lambda z.(\lambda x.z1)z((\lambda x.a)z) \big]\\
+[\lambda z.z1((\lambda x.a)z)] \\
+\lambda z.z1a
+\end{align*}
+%
+note: keeping track of parentheses is important as this keeps track of the head and body of each $\lambda$ abstraction (I use ``[ ]" to make this clear). Also, note that ``z" in the second abstraction ($\lambda x.z$) is changed to ``z1" to denote the difference between the bounded variable in $\lambda xyz.xz(yz)$ and the free variable ``z" in $\lambda x.z$.
+\end{enumerate}
+
+\section{Chapter 8 Exercises: Recursion}
+\subsection{Enumerate "dividedBy" function}
+Given:
+\lstset{language=Haskell}
+\begin{lstlisting}[frame=single]
+dividedBy :: Integral a => a -> a -> (a, a)
+dividedBy num denom = intDiv num denom 0
+ where intDiv n d i
+        | n < d = (i, n)
+        | otherwise =
+           intDiv (n - d) d (i + 1)
+\end{lstlisting}
+%
+Write out steps for \textit{dividedBy 15 2}:
+
+\begin{enumerate}
+\item intDiv 15 2 0 $\rightarrow$ intDiv 13 2 1
+\item intDiv 13 2 1 $\rightarrow$ intDiv 11 2 2
+\item intDiv 11 2 2 $\rightarrow$ intDiv 9 2 3
+\item intDiv 9 2 3 $\rightarrow$ intDiv 7 2 4
+\item intDiv 7 2 4 $\rightarrow$ intDiv 5 2 5
+\item intDiv 5 2 5 $\rightarrow$ intDiv 3 2 6
+\item intDiv 3 2 6 $\rightarrow$ intDiv 1 2 7 $\rightarrow$ (7, 1): Quotient = 7, Remainder = 1
+\end{enumerate}
+
+\subsection{Fix dividedBy}
+Fix dividedBy to handle negative numbers and "0" as a denominator (without returning bottom).
+
+\begin{lstlisting}[frame=single]
+-- Fixing dividedBy Exercise (handle negatives and 0s)
+xnor :: Bool -> Bool -> Bool
+xnor True True = True
+xnor True False = False
+xnor False True = False
+xnor False False = True
+
+data DividedResult =
+     Result (Integer, Integer)
+   | DividedByZero
+   deriving (Show, Eq)
+--dividedByFixed :: Integral a => a -> a -> DividedResult
+dividedByFixed :: Integer -> Integer -> DividedResult
+dividedByFixed _ 0 = DividedByZero
+dividedByFixed num denom = intDiv (abs num - abs denom) num denom 0
+ where intDiv diff n d i
+        | (diff < 0) && (isPos)     = Result (i, diff + abs d)
+        | (diff < 0) && (not isPos) = Result (-i, -(diff + abs d))
+        | otherwise =
+           intDiv (diff - abs d) n d (i + 1)
+         where isPos = xnor (n < 0) (d < 0)
+\end{lstlisting}
+%
+Note that we can't use the first type signature of dividedByFixed (commented out) since Result requires a tuple of concrete types "Integer". Since Integral is only a type constraint, setting it in the type signature will result in an error. 
+
+In order to handle negative numbers, we evaluate the sign of the result after division using "XNOR". XNOR function is defined using pattern matching.\footnote{See wikipedia reference \url{https://en.wikipedia.org/wiki/XNOR_gate} for the table definition of XNOR} 
+
+\subsection{Final Exercise: Wordify a string of numbers}
+\begin{lstlisting}[frame=single]
+-- Final Exercise: Integers to Words
+digitsToWords :: Int -> String
+digitsToWords n =
+ case n of
+  1 -> "one"
+  2 -> "two"
+  3 -> "three"
+  4 -> "four"
+  5 -> "five"
+  6 -> "six"
+  7 -> "seven"
+  8 -> "eight"
+  9 -> "nine"
+  _ -> "zero"
+
+digits :: Int -> [Int]
+digits n = listify n []
+ where listify d l
+        | d < 10    = d : l
+        | otherwise = listify d' l'
+         where d' = d `div` 10
+               l' = (d `mod` 10) : l
+
+numToWords :: Int -> String
+numToWords ds = concat $
+        intersperse "-" $ map digitsToWords (digits ds)
+\end{lstlisting}
+
+The first function, \textit{digitsToWords} is trivially implemented. The function \textit{digits} converts an integer (in our case a sequence of integers anywhere from 0-9) into a list of individual integers. This is done by recursively taking the last digit of what is passed to listify. The last digit is obtained by taking the ``mod 10" of the passed integer (i.e. the remainder from the integral division of the passed integer and 10). The last digit is then appended to the running list of digits using the \textit{cons} (construct) operator ``:" and the remaining numbers (i.e. result of the integral division) are recursively passed to listify to go through the same process until we get to the head of the sequence. At this point, the head is trivially appended to the running list of digits ``l", as shown in the first case of the guard statement.
+
+The numToWords function essentially takes the output of \textit{digits} and converts it into a string value separated by ``-". This is done by first converting each digit into its corresponding word (\textit{map digitsToWords (digits ds)}) and then \textit{interspersing} this list of words with ``-". The result of \textit{intersperse ``-" \$ map digitsToWords (digits ds)} is a list of strings (e.g. for $123$, it returns [``one", ``-", ``two", ``-", ``three"]). This list of strings is then \textit{concatenated} to yield a single string (e.g. ``one-two-three").
+
+
+\end{document}

@@ -1,0 +1,12 @@
+Alora.Gorodetsky.ea.CDC16.pdf
+*.log
+*.out
+*.aux
+*.bbl
+*.blg
+*.swp
+*synctex.gz
+*.DS_Store
+*~
+*.pdf
+
