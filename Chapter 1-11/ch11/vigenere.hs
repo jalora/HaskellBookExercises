@@ -18,29 +18,18 @@ wrapHelper :: (Int -> Int -> Int)
               -> MsgChar
               -> KeyChar
               -> Int
-wrapHelper f char kchr = lcWrap $ f (ord char) (mod kOrd lcBord)
+wrapHelper f char kchr = doWrap $ f (ord char) (mod kOrd lcBord)
    where kOrd = ord kchr
          lcBord = ord 'a'
-
-lcWrap :: Int -> Int
-lcWrap x
-  | x == a             = a
-  | x == z             = z
-  | x > z              = (a - 1) + mod x z
-  | x < a              = (z + 1) - mod a x
-  | otherwise          = mod x z
-   where a = ord 'a'
-         z = ord 'z'
-
-ucWrap :: Int -> Int
-ucWrap x
-  | x == upperA        = upperA
-  | x == upperZ        = upperZ
-  | x > upperZ         = (upperA - 1) + mod x upperZ
-  | x < upperA         = (upperZ + 1) - mod upperA x
-  | otherwise          = mod x upperZ
-   where upperA = ord 'A'
-         upperZ = ord 'Z'
+         doWrap :: Int -> Int
+         doWrap x
+           | x == a             = a
+           | x == z             = z
+           | x > z              = (a - 1) + mod x z
+           | x < a              = (z + 1) - mod a x
+           | otherwise          = mod x z
+            where a = ord 'a'
+                  z = ord 'z'
 
 parseKey :: Message -> Key -> String
 parseKey str key = take x key'
